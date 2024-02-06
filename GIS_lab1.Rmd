@@ -1,0 +1,11 @@
+---
+title: "gis_lab1"
+output: html_document
+date: "2024-02-06"
+---
+
+#initial commit
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+

@@ -1,33 +1,38 @@
----
-title: "gis_lab1"
-output: html_document
-date: "2024-02-06"
----
+#### Lab 1 Part 2: Acquiring and Making Administrative Data Spatial ####
 
-### initial commit, load packages, and set wd
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Three steps to minimize errors
 
+# Step 1: install the packages (need to install only once)
+install.packages("tidycensus")   # access US census data
+install.packages("tidyverse")    # data management/visualization (several packages)
+install.packages("sf")           # GIS package
+install.packages("tmap")         # mapping package
+install.packages("tmaptools")    # additional tools for tmap 
+
+
+# Step 2: load packages 
 library(tidycensus)
 library(tidyverse)
 library(sf)
 library(tmap)
 library(tmaptools)
-library(shinyjs)
-```
 
-### Now, I will get census data from tidycensus with the API key
-```{r}
+# Step 3: Set your working directory 
+setwd("Desktop/Fall 2024")
+
+
+### Get census data from tidycensus 
+
+# Set API key
 census_api_key("dd7a395d986b3bdb6d00c335f909f758959275b0")
 
+# Get a list of all variables available from census
 census_data <- load_variables(year = 2020, 
                               dataset = "acs5", 
                               cache = TRUE)
 View(census_data)
-```
 
-### Defining my query to New Jersey
-```{r}
+# Define your query
 nj_data <- get_acs(state= "nj",
                year = 2020,
                geography = "county",
@@ -38,67 +43,55 @@ nj_data <- get_acs(state= "nj",
                output = "wide")
 
 class(nj_data)
-```
 
-### Using dplyr (from tidyverse) to rename variables and calculate percent insured
-```{r}
-nj_data |> 
+# Use dplyr (from tidyverse) to rename variables and calculate percent insured
+
+nj_data %>% 
   rename(total_pop = S2701_C01_001E,
-         no_insured = S2701_C02_001E) |> 
+         no_insured = S2701_C02_001E) %>% 
   mutate(p_insured = 100*(no_insured/total_pop),
          county = str_extract(NAME, "(\\w+)")) -> nj_insured
-```
 
-### Using tmap
 
-####  Basic map - just geometry 
-```{r}
+# Use tmap to build out map
+
+# Basic map - just geometry 
 tm_shape(nj_insured) +    # data 
   tm_polygons() 
-```
-#### basic map with color
-```{r}
+
+
+# Basic map - add color 
 tm_shape(nj_insured) +    
   tm_polygons(col = "p_insured") 
-```
 
-#### defining classification and number of classes
-```{r}
+# Add classification method and number of classes
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
               n = 4) 
-```
 
-#### viewing tmap tools to see options
-```{r}
-palette_explorer()
-```
+# See tmap tools to see options
+  palette_explorer()
 
 
-#### Add classification method and number of classes
-```{r}
+# Add classification method and number of classes
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
               n = 4,
               palette = "Blues") 
-```
 
 
-#### Change stroke color and transparency
-```{r}
+# Change stroke color and transparency
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
               n = 4,
               palette = "Blues",
-              border.col = "black")  # also accepts hex color codes (https://htmlcolorcodes.com/)
-```
+              border.col = "black")  # also accepts hex color codes (https://htmlcolorcodes.com/) 
 
 
-### Rename legend and adjust it 
-```{r}
+# Rename legend and adjust it 
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -108,11 +101,8 @@ tm_shape(nj_insured) +
               title = "Percent Insured") + # name of legend 
   tm_legend(legend.position = c("left", "center")) # basic adjustment 
 
-```
-
 
 # More fine tune adjustment of legend 
-```{r}
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -121,10 +111,8 @@ tm_shape(nj_insured) +
               border.col = "black",
               title = "Percent Insured") + 
   tm_legend(legend.position = c("0.08", ".47")) # advanced adjustment 
-```
 
-#### Add title and other elements
-```{r}
+# Add title and other elements
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -138,13 +126,11 @@ tm_shape(nj_insured) +
             title.position = c(.2, .95),               # title position                         
             inner.margins = c(0.10, 0.10, 0.1, 0.01),  # margins (bottom, left, top, right)                          
             frame = FALSE,                             # get rid of frame                          
-            legend.title.size = .9)                   # legend size
-```
+            legend.title.size = .9)                   # legend size                          
   
 
-#### Add scale bar and north arrow 
-```{r}
- tm_shape(nj_insured) +   
+# Add scale bar and north arrow 
+  tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
               n = 4,
@@ -163,11 +149,9 @@ tm_shape(nj_insured) +
              size = 1.2) +                             
   tm_scale_bar(position=c(.08, 0.14),                  # scale bar 
                size = 0.6) 
-```
 
 
-### Add information on author, date, and text 
-```{r}
+# Add information on author, date, and text 
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -194,10 +178,9 @@ tm_shape(nj_insured) +
              size = .7,
              fontface = "bold",
              position = c(.68,.18))
-```
 
-#### Addding labels, author, date, and text 
-```{r}
+# Add label 
+# Add information on author, date, and text 
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -217,7 +200,7 @@ tm_shape(nj_insured) +
              size = 1.2) +                             
   tm_scale_bar(position=c(.08, 0.14),                   
                size = 0.6) +
-  tm_credits("Author: Camille Okonkwo \nSource: US Census \nDate: 01/24/2024",
+  tm_credits("Author: Joel Capellan \nSource: US Census \nDate:",
              size = .7,
              position = c(.024,.07)) +
   tm_credits("Counties labeled  \nfall in the lower \n25% of the distribution",
@@ -225,22 +208,16 @@ tm_shape(nj_insured) +
              fontface = "bold",
              position = c(.68,.18)) +
   tm_text(text  = "county", size = "AREA")
-```
 
 
-#### Make a filter 
-```{r}
-nj_insured |> 
+# Make a filter 
+nj_insured %>% 
   filter(p_insured <92.27) -> nj_filtered
 
 tm_shape(nj_filtered) +
   tm_polygons()
-```
 
-
-
-#### Labeling using filter NJ layer 
-```{r}
+# Label using filter NJ layer 
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -260,7 +237,7 @@ tm_shape(nj_insured) +
              size = 1.2) +                             
   tm_scale_bar(position=c(.08, 0.14),                   
                size = 0.6) +
-  tm_credits("Author: Camille Okonkwo \nSource: US Census \nDate: 01/24/2024",
+  tm_credits("Author: Joel Capellan \nSource: US Census \nDate:",
              size = .7,
              position = c(.024,.07)) +
   tm_credits("Counties labeled  \nfall in the lower \n25% of the distribution",
@@ -270,23 +247,16 @@ tm_shape(nj_insured) +
   tm_shape(nj_filtered) +                               # add filtered layer
   tm_text(text  = "county", size = "AREA")              # add labels
 
-```
 
 
-
-### Make a filter 
-
-```{r}
+# Make a filter 
 nj_insured %>% 
   filter(p_insured <92.27) -> nj_filtered
 
 tm_shape(nj_filtered) +
   tm_polygons()
-```
 
-
-#### Assign final map to an object 
-```{r}
+# Assign final map to an object 
 tm_shape(nj_insured) +   
   tm_polygons(col = "p_insured",
               style = "quantile",
@@ -306,7 +276,7 @@ tm_shape(nj_insured) +
              size = 1.2) +                             
   tm_scale_bar(position=c(.08, 0.14),                   
                size = 0.6) +
-  tm_credits("Author: Camille Okonkwo \nSource: US Census \nDate: 01/24/2024",
+  tm_credits("Author: Joel Capellan \nSource: US Census \nDate:",
              size = .7,
              position = c(.024,.07)) +
   tm_credits("Counties labeled  \nfall in the lower \n25% of the distribution",
@@ -314,25 +284,19 @@ tm_shape(nj_insured) +
              fontface = "bold",
              position = c(.68,.18)) +
   tm_shape(nj_filtered) +                               
-  tm_text(text  = "county", size = "AREA") -> final_map
-```
+  tm_text(text  = "county", size = "AREA") -> final_map             
 
 
-### Save map in wd jpg/tiff/pgn
-```{r}
+# Save map in wd jpg/tiff/pgn
+
 tmap_save(final_map, 
           dpi = 300,
           width = 6,
           height = 10,
           filename = "insured_nj.png")
-```
 
-
-### Save sf dataframe as shapefile
-```{r}
+# Save sf dataframe as shapefile
 st_write(nj_insured,"NJ_insured_r.shp")
-```
-
 
 
 
